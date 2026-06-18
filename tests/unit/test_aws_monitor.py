@@ -31,3 +31,6 @@ async def test_aws_monitor_operational():
         assert result.service_name == "aws"
         assert result.status == "operational"
         assert result.response_time_ms == 300
+        assert result.details["indicator"] == "operational"
+        assert result.details["source"] == "web_scraping"
+        assert result.details["description"] == "Status: operational"

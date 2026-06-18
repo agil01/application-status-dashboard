@@ -30,3 +30,7 @@ async def test_zscaler_monitor_operational():
 
         assert result.service_name == "zscaler"
         assert result.status == "operational"
+        assert result.response_time_ms == 220
+        assert result.details["indicator"] == "operational"
+        assert result.details["source"] == "web_scraping"
+        assert result.details["description"] == "Status: operational"

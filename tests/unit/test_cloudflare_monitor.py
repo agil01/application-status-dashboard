@@ -26,3 +26,5 @@ async def test_cloudflare_monitor_operational():
         assert result.service_name == "cloudflare"
         assert result.status == "operational"
         assert result.response_time_ms == 123
+        assert result.details["indicator"] == "none"
+        assert result.details["description"] == "All Systems Operational"

@@ -29,3 +29,7 @@ async def test_athena_monitor_operational():
 
         assert result.service_name == "athena"
         assert result.status == "operational"
+        assert result.response_time_ms == 250
+        assert result.details["indicator"] == "operational"
+        assert result.details["source"] == "web_scraping"
+        assert result.details["description"] == "Status: operational"

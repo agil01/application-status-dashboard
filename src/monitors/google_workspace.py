@@ -50,5 +50,9 @@ class GoogleWorkspaceMonitor(BaseMonitor):
             service_name=self.service_name,
             status=status,
             response_time_ms=response_time_ms,
-            details={"indicator": indicator, "source": "web_scraping"},
+            details={
+                "indicator": indicator,
+                "description": f"Status: {status}",
+                "source": "web_scraping",
+            },
         )

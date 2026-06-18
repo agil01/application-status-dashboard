@@ -26,3 +26,5 @@ async def test_okta_monitor_operational():
         assert result.service_name == "okta"
         assert result.status == "operational"
         assert result.response_time_ms == 200
+        assert result.details["indicator"] == "none"
+        assert result.details["description"] == "All Systems Operational"

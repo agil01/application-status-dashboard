@@ -29,3 +29,7 @@ async def test_google_workspace_monitor_operational():
 
         assert result.service_name == "google_workspace"
         assert result.status == "operational"
+        assert result.response_time_ms == 180
+        assert result.details["indicator"] == "operational"
+        assert result.details["source"] == "web_scraping"
+        assert result.details["description"] == "Status: operational"
