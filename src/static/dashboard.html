@@ -488,7 +488,9 @@
 
         function formatTimestamp(timestamp) {
             if (!timestamp) return 'Never';
-            const date = new Date(timestamp);
+            // Ensure timestamp is treated as UTC by adding 'Z' if not present
+            const utcTimestamp = timestamp.includes('Z') ? timestamp : timestamp + 'Z';
+            const date = new Date(utcTimestamp);
             return date.toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit',
