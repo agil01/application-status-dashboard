@@ -14,7 +14,10 @@ build/
 *.db
 *.sqlite
 *.sqlite3
-data/
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+!data/backups/
 
 # Environment
 .env
