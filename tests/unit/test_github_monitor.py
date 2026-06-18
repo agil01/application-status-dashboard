@@ -55,7 +55,9 @@ async def test_github_monitor_outage():
 
         result = await monitor.check_status()
 
+        assert result.service_name == "github"
         assert result.status == "outage"
+        assert result.response_time_ms == 150
         assert result.details["indicator"] == "critical"
 
 
@@ -78,4 +80,7 @@ async def test_github_monitor_degraded():
 
         result = await monitor.check_status()
 
+        assert result.service_name == "github"
         assert result.status == "degraded"
+        assert result.response_time_ms == 500
+        assert result.details["indicator"] == "minor"
