@@ -34,6 +34,7 @@ async def test_github_monitor_operational(github_response):
         assert result.status == "operational"
         assert result.response_time_ms == 234
         assert result.details["indicator"] == "none"
+        assert result.details["description"] == "All Systems Operational"
 
 
 @pytest.mark.asyncio
@@ -59,6 +60,7 @@ async def test_github_monitor_outage():
         assert result.status == "outage"
         assert result.response_time_ms == 150
         assert result.details["indicator"] == "critical"
+        assert result.details["description"] == "Major Service Outage"
 
 
 @pytest.mark.asyncio
@@ -84,3 +86,61 @@ async def test_github_monitor_degraded():
         assert result.status == "degraded"
         assert result.response_time_ms == 500
         assert result.details["indicator"] == "minor"
+        assert result.details["description"] == "Degraded Performance"
+
+
+@pytest.mark.asyncio
+async def test_github_monitor_missing_status():
+    """Test GitHub monitor handles missing status gracefully."""
+    from src.monitors.github import GitHubMonitor
+    from unittest.mock import Mock, patch
+
+    monitor = GitHubMonitor()
+
+    empty_response = {}  # No status object
+
+    with patch.object(monitor, "_http_get") as mock_get:
+        mock_response = Mock()
+        mock_response.json.return_value = empty_response
+        mock_response.elapsed.total_seconds.return_value = 0.100
+        mock_get.return_value = mock_response
+
+        result = await monitor.check_status()
+
+        assert result.service_name == "github"
+        assert result.status == "unknown"  # Should map unknown indicator to "unknown"
+        assert result.response_time_ms == 100
+        assert result.details["indicator"] == "unknown"
+        assert result.details["description"] == ""
+
+
+@pytest.mark.asyncio
+async def test_github_monitor_unknown_indicator():
+    """Test GitHub monitor handles unknown indicator values."""
+    from src.monitors.github import GitHubMonitor
+    from unittest.mock import Mock, patch
+
+    monitor = GitHubMonitor()
+
+    unknown_response = {
+        "status": {
+            "indicator": "maintenance",  # Unknown indicator
+            "description": "Scheduled Maintenance",
+        }
+    }
+
+    with patch.object(monitor, "_http_get") as mock_get:
+        mock_response = Mock()
+        mock_response.json.return_value = unknown_response
+        mock_response.elapsed.total_seconds.return_value = 0.200
+        mock_get.return_value = mock_response
+
+        result = await monitor.check_status()
+
+        assert result.service_name == "github"
+        assert (
+            result.status == "unknown"
+        )  # BaseMonitor._map_status maps unknown indicators to "unknown"
+        assert result.response_time_ms == 200
+        assert result.details["indicator"] == "maintenance"
+        assert result.details["description"] == "Scheduled Maintenance"
