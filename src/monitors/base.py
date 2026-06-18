@@ -1,4 +1,5 @@
 """Base monitor class for service status checking."""
+
 import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -14,6 +15,7 @@ from src.config import get_settings
 @dataclass
 class HealthCheckResult:
     """Result of a health check."""
+
     service_name: str
     status: str  # operational, degraded, outage, unknown
     response_time_ms: int
@@ -34,7 +36,7 @@ class BaseMonitor(ABC):
         display_name: str,
         url: str,
         timeout: Optional[int] = None,
-        max_retries: Optional[int] = None
+        max_retries: Optional[int] = None,
     ):
         """Initialize monitor.
 
@@ -62,9 +64,7 @@ class BaseMonitor(ABC):
             self._client = httpx.AsyncClient(
                 timeout=self.timeout,
                 follow_redirects=True,
-                headers={
-                    "User-Agent": "StatusMonitor/1.0"
-                }
+                headers={"User-Agent": "StatusMonitor/1.0"},
             )
         return self._client
 
@@ -93,10 +93,7 @@ class BaseMonitor(ABC):
         """
         try:
             # Execute check with timeout
-            result = await asyncio.wait_for(
-                self.check_status(),
-                timeout=self.timeout
-            )
+            result = await asyncio.wait_for(self.check_status(), timeout=self.timeout)
             return result
 
         except asyncio.TimeoutError:
@@ -108,7 +105,7 @@ class BaseMonitor(ABC):
                 service_name=self.service_name,
                 status="unknown",
                 response_time_ms=0,
-                details={"error": str(e)}
+                details={"error": str(e)},
             )
 
     async def _http_get(self, url: str) -> httpx.Response:
@@ -127,7 +124,6 @@ class BaseMonitor(ABC):
 
         for attempt in range(self.max_retries + 1):
             try:
-                start_time = datetime.now(UTC)
                 response = await self.client.get(url)
                 response.raise_for_status()
                 return response
@@ -136,7 +132,7 @@ class BaseMonitor(ABC):
                 last_error = e
                 if attempt < self.max_retries:
                     # Exponential backoff: 2^attempt seconds
-                    await asyncio.sleep(2 ** attempt)
+                    await asyncio.sleep(2**attempt)
                 continue
 
         # All retries failed
