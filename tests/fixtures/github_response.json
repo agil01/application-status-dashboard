@@ -1,0 +1,11 @@
+{
+    "page": {
+        "id": "kctbh9vrtdwd",
+        "name": "GitHub",
+        "url": "https://www.githubstatus.com"
+    },
+    "status": {
+        "indicator": "none",
+        "description": "All Systems Operational"
+    }
+}
