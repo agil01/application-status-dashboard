@@ -1,6 +1,7 @@
 """Tests for database models and operations."""
+
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
@@ -26,7 +27,7 @@ def test_create_health_check(db_session):
         service_name="github",
         status="operational",
         response_time_ms=234,
-        details='{"indicator": "none"}'
+        details='{"indicator": "none"}',
     )
 
     db_session.add(check)
@@ -42,11 +43,7 @@ def test_create_incident(db_session):
     """Test creating an incident record."""
     from src.models import Incident
 
-    incident = Incident(
-        service_name="aws",
-        severity="major",
-        consecutive_failures=3
-    )
+    incident = Incident(service_name="aws", severity="major", consecutive_failures=3)
 
     db_session.add(incident)
     db_session.commit()
@@ -62,15 +59,11 @@ def test_resolve_incident(db_session):
     """Test resolving an incident."""
     from src.models import Incident
 
-    incident = Incident(
-        service_name="okta",
-        severity="minor",
-        consecutive_failures=3
-    )
+    incident = Incident(service_name="okta", severity="minor", consecutive_failures=3)
     db_session.add(incident)
     db_session.commit()
 
-    incident.resolved_at = datetime.utcnow()
+    incident.resolved_at = datetime.now(UTC)
     db_session.commit()
 
     saved = db_session.query(Incident).filter_by(service_name="okta").first()
@@ -86,7 +79,7 @@ def test_get_recent_health_checks(db_session):
         check = HealthCheck(
             service_name="cloudflare",
             status="operational" if i < 2 else "outage",
-            response_time_ms=100 + i
+            response_time_ms=100 + i,
         )
         db_session.add(check)
 

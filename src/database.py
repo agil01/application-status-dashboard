@@ -1,5 +1,7 @@
 """Database setup and session management."""
+
 from contextlib import contextmanager
+from functools import lru_cache
 from pathlib import Path
 
 from sqlalchemy import create_engine, event
@@ -22,6 +24,7 @@ def set_sqlite_pragma(dbapi_conn, connection_record):
     cursor.close()
 
 
+@lru_cache
 def get_engine():
     """Get SQLAlchemy engine."""
     settings = get_settings()
@@ -35,7 +38,7 @@ def get_engine():
         f"sqlite:///{settings.database_path}",
         connect_args={"check_same_thread": False},
         pool_pre_ping=True,
-        echo=settings.log_level == "DEBUG"
+        echo=settings.log_level == "DEBUG",
     )
 
     return engine
