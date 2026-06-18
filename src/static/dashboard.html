@@ -188,6 +188,12 @@
             margin-bottom: 24px;
         }
 
+        .service-card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
         .service-card {
             background: rgba(30, 41, 59, 0.6);
             backdrop-filter: blur(10px);
@@ -197,6 +203,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            cursor: pointer;
         }
 
         .service-card::before {
@@ -529,29 +536,31 @@
             const responseTimeClass = getResponseTimeClass(service.response_time_ms);
 
             return `
-                <div class="service-card ${statusClass}">
-                    <div class="service-header">
-                        <div class="service-info">
-                            <span class="service-emoji">${emoji}</span>
-                            <div class="service-name">${service.display_name}</div>
+                <a href="${service.status_url}" target="_blank" rel="noopener noreferrer" class="service-card-link">
+                    <div class="service-card ${statusClass}">
+                        <div class="service-header">
+                            <div class="service-info">
+                                <span class="service-emoji">${emoji}</span>
+                                <div class="service-name">${service.display_name}</div>
+                            </div>
+                            <div class="status-badge ${statusClass}">${service.status}</div>
                         </div>
-                        <div class="status-badge ${statusClass}">${service.status}</div>
+                        <div class="service-metrics">
+                            <div class="metric">
+                                <span class="metric-label">Response Time</span>
+                                <span class="metric-value ${responseTimeClass}">${formatResponseTime(service.response_time_ms)}</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Last Checked</span>
+                                <span class="metric-value">${formatTimestamp(service.last_checked)}</span>
+                            </div>
+                        </div>
+                        ${service.has_active_incident ?
+                            '<div class="incident-indicator">⚠️ Active Incident</div>' :
+                            ''
+                        }
                     </div>
-                    <div class="service-metrics">
-                        <div class="metric">
-                            <span class="metric-label">Response Time</span>
-                            <span class="metric-value ${responseTimeClass}">${formatResponseTime(service.response_time_ms)}</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Last Checked</span>
-                            <span class="metric-value">${formatTimestamp(service.last_checked)}</span>
-                        </div>
-                    </div>
-                    ${service.has_active_incident ?
-                        '<div class="incident-indicator">⚠️ Active Incident</div>' :
-                        ''
-                    }
-                </div>
+                </a>
             `;
         }
 

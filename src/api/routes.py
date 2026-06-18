@@ -24,6 +24,7 @@ class ServiceStatus(BaseModel):
     response_time_ms: Optional[int]
     last_checked: Optional[datetime]
     has_active_incident: bool
+    status_url: str
 
 
 class IncidentResponse(BaseModel):
@@ -78,6 +79,7 @@ async def get_status():
                     ),
                     last_checked=latest_check.checked_at if latest_check else None,
                     has_active_incident=active_incident is not None,
+                    status_url=monitor.url,
                 )
             )
 
