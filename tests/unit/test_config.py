@@ -1,5 +1,5 @@
 """Tests for configuration management."""
-import os
+
 import pytest
 from pydantic import ValidationError
 
@@ -22,10 +22,7 @@ def test_config_has_defaults():
     """Test configuration has sensible defaults."""
     from src.config import Settings
 
-    settings = Settings(
-        slack_bot_token="test",
-        slack_primary_channel="test"
-    )
+    settings = Settings(slack_bot_token="test", slack_primary_channel="test")
 
     assert settings.health_check_interval == 60
     assert settings.consecutive_failure_threshold == 3
