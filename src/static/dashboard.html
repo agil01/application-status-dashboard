@@ -59,6 +59,17 @@
             border: 1px solid rgba(148, 163, 184, 0.1);
         }
 
+        .stat-card.clickable {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card.clickable:hover {
+            background: rgba(15, 23, 42, 0.8);
+            border-color: rgba(96, 165, 250, 0.3);
+            transform: translateY(-2px);
+        }
+
         .stat-label {
             font-size: 11px;
             text-transform: uppercase;
@@ -400,6 +411,192 @@
             background: rgba(100, 116, 139, 0.6);
         }
 
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            max-width: 700px;
+            max-height: 80vh;
+            width: 90%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .modal-close {
+            background: rgba(100, 116, 139, 0.3);
+            border: none;
+            color: #e2e8f0;
+            font-size: 24px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .incident-item {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid;
+        }
+
+        .incident-item.severity-critical {
+            border-left-color: #ef4444;
+        }
+
+        .incident-item.severity-major {
+            border-left-color: #f59e0b;
+        }
+
+        .incident-item.severity-minor {
+            border-left-color: #3b82f6;
+        }
+
+        .incident-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .incident-service {
+            font-size: 16px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .incident-severity {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .incident-severity.critical {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .incident-severity.major {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .incident-severity.minor {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .incident-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            font-size: 13px;
+        }
+
+        .incident-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .incident-detail-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .incident-detail-value {
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+
+        .no-incidents {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+            font-size: 16px;
+        }
+
+        .no-incidents-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .dashboard {
@@ -413,6 +610,15 @@
 
             .services-grid {
                 grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+
+            .modal-content {
+                width: 95%;
+                max-height: 90vh;
+            }
+
+            .incident-details {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -428,7 +634,7 @@
                 <div class="stat-value" id="total-services">-</div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card clickable" id="incidents-card">
                 <div class="stat-label">Active Incidents</div>
                 <div class="stat-value critical" id="active-incidents">-</div>
             </div>
@@ -487,6 +693,19 @@
 
     <div id="refresh-indicator" class="refresh-indicator">
         Updating...
+    </div>
+
+    <!-- Incidents Modal -->
+    <div id="incidents-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Active Incidents</h2>
+                <button class="modal-close" id="close-modal">×</button>
+            </div>
+            <div class="modal-body" id="incidents-list">
+                <!-- Incidents will be inserted here -->
+            </div>
+        </div>
     </div>
 
     <script>
@@ -633,6 +852,104 @@
 
         // Refresh every 10 seconds
         setInterval(updateDashboard, REFRESH_INTERVAL);
+
+        // Incidents Modal
+        const incidentsModal = document.getElementById('incidents-modal');
+        const incidentsCard = document.getElementById('incidents-card');
+        const closeModal = document.getElementById('close-modal');
+        const incidentsList = document.getElementById('incidents-list');
+
+        async function loadIncidents() {
+            try {
+                const response = await fetch('/api/incidents?active_only=true');
+                const incidents = await response.json();
+
+                if (incidents.length === 0) {
+                    incidentsList.innerHTML = `
+                        <div class="no-incidents">
+                            <div class="no-incidents-icon">✅</div>
+                            <div>No active incidents</div>
+                        </div>
+                    `;
+                } else {
+                    incidentsList.innerHTML = incidents.map(incident => {
+                        const duration = incident.resolved_at
+                            ? 'Resolved'
+                            : getDuration(incident.started_at);
+
+                        return `
+                            <div class="incident-item severity-${incident.severity}">
+                                <div class="incident-header">
+                                    <div class="incident-service">${incident.service_name.toUpperCase()}</div>
+                                    <div class="incident-severity ${incident.severity}">${incident.severity}</div>
+                                </div>
+                                <div class="incident-details">
+                                    <div class="incident-detail">
+                                        <span class="incident-detail-label">Started</span>
+                                        <span class="incident-detail-value">${formatTimestamp(incident.started_at)}</span>
+                                    </div>
+                                    <div class="incident-detail">
+                                        <span class="incident-detail-label">Duration</span>
+                                        <span class="incident-detail-value">${duration}</span>
+                                    </div>
+                                    <div class="incident-detail">
+                                        <span class="incident-detail-label">Consecutive Failures</span>
+                                        <span class="incident-detail-value">${incident.consecutive_failures}</span>
+                                    </div>
+                                    <div class="incident-detail">
+                                        <span class="incident-detail-label">Status</span>
+                                        <span class="incident-detail-value">${incident.resolved_at ? 'Resolved' : 'Active'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('Error loading incidents:', error);
+                incidentsList.innerHTML = `
+                    <div class="no-incidents">
+                        <div class="no-incidents-icon">⚠️</div>
+                        <div>Error loading incidents</div>
+                    </div>
+                `;
+            }
+        }
+
+        function getDuration(startTime) {
+            const start = new Date(startTime.includes('Z') ? startTime : startTime + 'Z');
+            const now = new Date();
+            const diffMs = now - start;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffDays > 0) return `${diffDays}d ${diffHours % 24}h`;
+            if (diffHours > 0) return `${diffHours}h ${diffMins % 60}m`;
+            return `${diffMins}m`;
+        }
+
+        incidentsCard.addEventListener('click', async () => {
+            incidentsModal.classList.add('active');
+            await loadIncidents();
+        });
+
+        closeModal.addEventListener('click', () => {
+            incidentsModal.classList.remove('active');
+        });
+
+        incidentsModal.addEventListener('click', (e) => {
+            if (e.target === incidentsModal) {
+                incidentsModal.classList.remove('active');
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && incidentsModal.classList.contains('active')) {
+                incidentsModal.classList.remove('active');
+            }
+        });
     </script>
 </body>
 </html>
