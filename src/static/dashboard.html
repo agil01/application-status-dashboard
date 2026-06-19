@@ -108,6 +108,16 @@
             font-size: 13px;
         }
 
+        .summary-item.clickable {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .summary-item.clickable:hover {
+            background: rgba(15, 23, 42, 0.7);
+            transform: translateX(4px);
+        }
+
         .summary-count {
             font-weight: 700;
             padding: 4px 10px;
@@ -597,6 +607,80 @@
             margin-bottom: 12px;
         }
 
+        .service-item {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .service-item.status-operational {
+            border-left-color: #10b981;
+        }
+
+        .service-item.status-degraded {
+            border-left-color: #f59e0b;
+        }
+
+        .service-item.status-outage {
+            border-left-color: #ef4444;
+        }
+
+        .service-item.status-unknown {
+            border-left-color: #64748b;
+        }
+
+        .service-item-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .service-item-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        .service-item-time {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .service-item-response {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .service-item-response.fast {
+            color: #10b981;
+        }
+
+        .service-item-response.slow {
+            color: #f59e0b;
+        }
+
+        .service-item-response.error {
+            color: #ef4444;
+        }
+
+        .service-item-link {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s ease;
+        }
+
+        .service-item-link:hover .service-item {
+            background: rgba(15, 23, 42, 0.8);
+            transform: translateX(4px);
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .dashboard {
@@ -645,19 +729,19 @@
             </div>
 
             <div class="status-summary">
-                <div class="summary-item">
+                <div class="summary-item clickable" data-status="operational">
                     <span>✅ Operational</span>
                     <span class="summary-count operational" id="count-operational">0</span>
                 </div>
-                <div class="summary-item">
+                <div class="summary-item clickable" data-status="degraded">
                     <span>⚠️ Degraded</span>
                     <span class="summary-count degraded" id="count-degraded">0</span>
                 </div>
-                <div class="summary-item">
+                <div class="summary-item clickable" data-status="outage">
                     <span>🔴 Outage</span>
                     <span class="summary-count outage" id="count-outage">0</span>
                 </div>
-                <div class="summary-item">
+                <div class="summary-item clickable" data-status="unknown">
                     <span>❓ Unknown</span>
                     <span class="summary-count unknown" id="count-unknown">0</span>
                 </div>
@@ -695,15 +779,15 @@
         Updating...
     </div>
 
-    <!-- Incidents Modal -->
-    <div id="incidents-modal" class="modal-overlay">
+    <!-- Modal -->
+    <div id="status-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Active Incidents</h2>
+                <h2 class="modal-title" id="modal-title">Details</h2>
                 <button class="modal-close" id="close-modal">×</button>
             </div>
-            <div class="modal-body" id="incidents-list">
-                <!-- Incidents will be inserted here -->
+            <div class="modal-body" id="modal-body">
+                <!-- Content will be inserted here -->
             </div>
         </div>
     </div>
@@ -791,6 +875,9 @@
                 const response = await fetch(API_URL);
                 const data = await response.json();
 
+                // Cache services for modal
+                cachedServices = data.services;
+
                 // Count services by status
                 const counts = {
                     operational: 0,
@@ -853,26 +940,30 @@
         // Refresh every 10 seconds
         setInterval(updateDashboard, REFRESH_INTERVAL);
 
-        // Incidents Modal
-        const incidentsModal = document.getElementById('incidents-modal');
-        const incidentsCard = document.getElementById('incidents-card');
+        // Modal System
+        const statusModal = document.getElementById('status-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
         const closeModal = document.getElementById('close-modal');
-        const incidentsList = document.getElementById('incidents-list');
+        const incidentsCard = document.getElementById('incidents-card');
+        let cachedServices = [];
 
         async function loadIncidents() {
             try {
                 const response = await fetch('/api/incidents?active_only=true');
                 const incidents = await response.json();
 
+                modalTitle.textContent = 'Active Incidents';
+
                 if (incidents.length === 0) {
-                    incidentsList.innerHTML = `
+                    modalBody.innerHTML = `
                         <div class="no-incidents">
                             <div class="no-incidents-icon">✅</div>
                             <div>No active incidents</div>
                         </div>
                     `;
                 } else {
-                    incidentsList.innerHTML = incidents.map(incident => {
+                    modalBody.innerHTML = incidents.map(incident => {
                         const duration = incident.resolved_at
                             ? 'Resolved'
                             : getDuration(incident.started_at);
@@ -907,12 +998,60 @@
                 }
             } catch (error) {
                 console.error('Error loading incidents:', error);
-                incidentsList.innerHTML = `
+                modalBody.innerHTML = `
                     <div class="no-incidents">
                         <div class="no-incidents-icon">⚠️</div>
                         <div>Error loading incidents</div>
                     </div>
                 `;
+            }
+        }
+
+        function loadServicesByStatus(status) {
+            const statusEmoji = {
+                operational: '✅',
+                degraded: '⚠️',
+                outage: '🔴',
+                unknown: '❓'
+            };
+
+            const statusTitle = {
+                operational: 'Operational Services',
+                degraded: 'Degraded Services',
+                outage: 'Services with Outages',
+                unknown: 'Unknown Status Services'
+            };
+
+            modalTitle.textContent = statusTitle[status] || 'Services';
+
+            const filteredServices = cachedServices.filter(
+                service => service.status.toLowerCase() === status
+            );
+
+            if (filteredServices.length === 0) {
+                modalBody.innerHTML = `
+                    <div class="no-incidents">
+                        <div class="no-incidents-icon">${statusEmoji[status]}</div>
+                        <div>No services with ${status} status</div>
+                    </div>
+                `;
+            } else {
+                modalBody.innerHTML = filteredServices.map(service => {
+                    const responseTimeClass = getResponseTimeClass(service.response_time_ms);
+                    return `
+                        <a href="${service.status_url}" target="_blank" rel="noopener noreferrer" class="service-item-link">
+                            <div class="service-item status-${status}">
+                                <div>
+                                    <div class="service-item-name">${service.display_name}</div>
+                                </div>
+                                <div class="service-item-details">
+                                    <span class="service-item-response ${responseTimeClass}">${formatResponseTime(service.response_time_ms)}</span>
+                                    <span class="service-item-time">${formatTimestamp(service.last_checked)}</span>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
             }
         }
 
@@ -929,25 +1068,34 @@
             return `${diffMins}m`;
         }
 
+        // Event Listeners
         incidentsCard.addEventListener('click', async () => {
-            incidentsModal.classList.add('active');
+            statusModal.classList.add('active');
             await loadIncidents();
         });
 
-        closeModal.addEventListener('click', () => {
-            incidentsModal.classList.remove('active');
+        document.querySelectorAll('.summary-item.clickable').forEach(item => {
+            item.addEventListener('click', () => {
+                const status = item.getAttribute('data-status');
+                statusModal.classList.add('active');
+                loadServicesByStatus(status);
+            });
         });
 
-        incidentsModal.addEventListener('click', (e) => {
-            if (e.target === incidentsModal) {
-                incidentsModal.classList.remove('active');
+        closeModal.addEventListener('click', () => {
+            statusModal.classList.remove('active');
+        });
+
+        statusModal.addEventListener('click', (e) => {
+            if (e.target === statusModal) {
+                statusModal.classList.remove('active');
             }
         });
 
         // Close modal with Escape key
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && incidentsModal.classList.contains('active')) {
-                incidentsModal.classList.remove('active');
+            if (e.key === 'Escape' && statusModal.classList.contains('active')) {
+                statusModal.classList.remove('active');
             }
         });
     </script>
